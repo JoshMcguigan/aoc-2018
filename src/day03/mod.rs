@@ -1,6 +1,7 @@
 use nom::{named, do_parse, separated_list, call, error_position, eol, map_res, tag, recognize};
 use nom::types::CompleteStr;
 use std::str::FromStr;
+use std::collections::HashMap;
 
 #[derive(Debug, PartialEq)]
 struct FabricSection {
@@ -38,9 +39,42 @@ named!(
     separated_list!(eol, fabric_section)
 );
 
+fn calc_used_fabric(sections: Vec<FabricSection>) -> HashMap<(u16, u16), u16> {
+    // map tuple of left_pos, top_pos fabric location to quantity of sections which use it
+    let mut used_fabric = HashMap::new();
+
+    for section in sections {
+        let FabricSection {
+            left_pos, top_pos, width, height, ..
+        } = section;
+
+        for left in left_pos..(left_pos+width) {
+            for top in top_pos..(top_pos+height) {
+                let count = used_fabric
+                    .entry((left, top))
+                    .or_insert(0);
+                *count += 1;
+            }
+        }
+    }
+
+    used_fabric
+}
+
+fn calc_double_used_fabric(used_fabric: HashMap<(u16, u16), u16>) -> u64 {
+    let mut double_used = 0;
+
+    for &usages in used_fabric.values() {
+        if usages > 1 { double_used += 1; }
+    }
+
+    double_used
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     #[test]
     fn fabric_section_parse() {
@@ -66,5 +100,25 @@ mod tests {
         ];
 
         assert_eq!(expected, fabric_sections(input).unwrap().1);
+    }
+
+    #[test]
+    fn map_used_fabric_single() {
+        let input = CompleteStr("#1 @ 1,3: 1x1");
+        let sections = fabric_sections(input).unwrap().1;
+
+        let used_fabric = calc_used_fabric(sections);
+
+        assert_eq!(Some(&1), used_fabric.get(&(1, 3)));
+    }
+
+    #[test]
+    fn part1() {
+        let input = fs::read_to_string("./src/day03/input-part1.txt").unwrap();
+        let sections = fabric_sections(CompleteStr(&input)).unwrap().1;
+
+        let used_fabric = calc_used_fabric(sections);
+
+        assert_eq!(115242, calc_double_used_fabric(used_fabric));
     }
 }
