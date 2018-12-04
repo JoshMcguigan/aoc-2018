@@ -29,7 +29,7 @@ mod tests {
 
     #[test]
     fn part1() {
-        let input = fs::read_to_string("./src/day02/input-part1.txt").unwrap();
+        let input = fs::read_to_string("./src/day02/input.txt").unwrap();
         let mut has_two_count = 0;
         let mut has_three_count = 0;
 
@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn part2() {
-        let input = fs::read_to_string("./src/day02/input-part1.txt").unwrap();
+        let input = fs::read_to_string("./src/day02/input.txt").unwrap();
 
         assert_eq!(Some(String::from("lsrivmotzbdxpkxnaqmuwcchj")), find_one_letter_off(input));
     }

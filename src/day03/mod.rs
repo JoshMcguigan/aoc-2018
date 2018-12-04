@@ -136,7 +136,7 @@ mod tests {
 
     #[test]
     fn part1() {
-        let input = fs::read_to_string("./src/day03/input-part1.txt").unwrap();
+        let input = fs::read_to_string("./src/day03/input.txt").unwrap();
         let sections = fabric_sections(CompleteStr(&input)).unwrap().1;
 
         let used_fabric = calc_used_fabric(&sections);
@@ -146,7 +146,7 @@ mod tests {
 
     #[test]
     fn part2() {
-        let input = fs::read_to_string("./src/day03/input-part1.txt").unwrap();
+        let input = fs::read_to_string("./src/day03/input.txt").unwrap();
         let sections = fabric_sections(CompleteStr(&input)).unwrap().1;
 
         let used_fabric = calc_used_fabric(&sections);

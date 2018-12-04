@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn part1(){
-        let input = fs::read_to_string("./src/day01/input-part1.txt").unwrap();
+        let input = fs::read_to_string("./src/day01/input.txt").unwrap();
 
         let changes : Vec<Change> = changes(CompleteStr(&input)).unwrap().1;
 
@@ -128,7 +128,7 @@ mod tests {
 
     #[test]
     fn part2(){
-        let input = fs::read_to_string("./src/day01/input-part1.txt").unwrap();
+        let input = fs::read_to_string("./src/day01/input.txt").unwrap();
 
         let changes : Vec<Change> = changes(CompleteStr(&input)).unwrap().1;
 
