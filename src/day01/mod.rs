@@ -14,7 +14,6 @@ use nom::types::CompleteStr;
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
-#[allow(dead_code)]
 enum Sign {
     Pos,
     Neg,
