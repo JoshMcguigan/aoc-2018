@@ -133,7 +133,7 @@ fn total_nap_time(naps: &Vec<Nap>) -> u16 {
         .fold(0u16, |acc, nap| acc + nap.duration() as u16 )
 }
 
-fn most_common_minute(naps: &Vec<Nap>) -> u8 {
+fn most_common_minute(naps: &Vec<Nap>) -> (u8, u8) {
     let mut minute_counts = [0u32; 60];
 
     for nap in naps {
@@ -142,7 +142,22 @@ fn most_common_minute(naps: &Vec<Nap>) -> u8 {
         }
     }
 
-    minute_counts.iter().enumerate().max_by_key(|&(_, &item)| item).unwrap().0 as u8
+    let (minute, count) = minute_counts.iter().enumerate().max_by_key(|&(_, &item)| item).unwrap();
+    (minute as u8, *count as u8)
+}
+
+fn part2_impl(naps_per_guard: &HashMap<GuardId, Vec<Nap>>) -> (GuardId, u8) {
+    // assuming there is a guard who stands above the rest
+    let mut max_guard_id = 0;
+    let mut max_minute = 0;
+    let mut max_count = 0;
+
+    for (&guard_id, naps) in naps_per_guard {
+        let (minute, count) = most_common_minute(naps);
+        if count > max_count { max_count = count; max_guard_id = guard_id; max_minute = minute; }
+    }
+
+    (max_guard_id, max_minute)
 }
 
 #[cfg(test)]
@@ -249,7 +264,8 @@ mod tests {
         let naps_for_guard_ten = naps_per_guard.get(&10).unwrap();
 
         assert_eq!(50, total_nap_time(naps_for_guard_ten));
-        assert_eq!(24, most_common_minute(naps_for_guard_ten));
+        assert_eq!(24, most_common_minute(naps_for_guard_ten).0);
+        assert_eq!(2, most_common_minute(naps_for_guard_ten).1);
     }
 
     #[test]
@@ -266,8 +282,48 @@ mod tests {
         let naps_for_guard = naps_per_guard.get(&1487).unwrap();
 
         assert_eq!(551, total_nap_time(naps_for_guard));
-        assert_eq!(34, most_common_minute(naps_for_guard));
+        assert_eq!(34, most_common_minute(naps_for_guard).0);
 
         assert_eq!(50558, 1487 * 34);
+    }
+
+    #[test]
+    fn part2_example() {
+        let input = CompleteStr(
+            "[1518-11-01 00:00] Guard #10 begins shift
+[1518-11-01 00:05] falls asleep
+[1518-11-01 00:25] wakes up
+[1518-11-01 00:30] falls asleep
+[1518-11-01 00:55] wakes up
+[1518-11-01 23:58] Guard #99 begins shift
+[1518-11-02 00:40] falls asleep
+[1518-11-02 00:50] wakes up
+[1518-11-03 00:05] Guard #10 begins shift
+[1518-11-03 00:24] falls asleep
+[1518-11-03 00:29] wakes up
+[1518-11-04 00:02] Guard #99 begins shift
+[1518-11-04 00:36] falls asleep
+[1518-11-04 00:46] wakes up
+[1518-11-05 00:03] Guard #99 begins shift
+[1518-11-05 00:45] falls asleep
+[1518-11-05 00:55] wakes up");
+
+        let parsed_events : Vec<Event> = events(input).unwrap().1;
+        let naps_per_guard: HashMap<GuardId, Vec<Nap>> = calc_naps(parsed_events);
+
+        let (guard_id, minute) = part2_impl(&naps_per_guard);
+
+        assert_eq!(99 * 45, guard_id * minute as u16);
+    }
+
+    #[test]
+    fn part2() {
+        let input = fs::read_to_string("./src/day04/input.txt").unwrap();
+        let parsed_events = events(CompleteStr(&input)).unwrap().1;
+        let naps_per_guard: HashMap<GuardId, Vec<Nap>> = calc_naps(parsed_events);
+
+        let (guard_id, minute) = part2_impl(&naps_per_guard);
+
+        assert_eq!(28198, guard_id * minute as u16);
     }
 }
