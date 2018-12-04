@@ -39,12 +39,12 @@ named!(
     separated_list!(eol, fabric_section)
 );
 
-fn calc_used_fabric(sections: Vec<FabricSection>) -> HashMap<(u16, u16), u16> {
+fn calc_used_fabric(sections: &Vec<FabricSection>) -> HashMap<(u16, u16), u16> {
     // map tuple of left_pos, top_pos fabric location to quantity of sections which use it
     let mut used_fabric = HashMap::new();
 
     for section in sections {
-        let FabricSection {
+        let &FabricSection {
             left_pos, top_pos, width, height, ..
         } = section;
 
@@ -69,6 +69,28 @@ fn calc_double_used_fabric(used_fabric: HashMap<(u16, u16), u16>) -> u64 {
     }
 
     double_used
+}
+
+fn find_free_section(sections: Vec<FabricSection>, used_fabric: HashMap<(u16, u16), u16>) -> Option<u16> {
+    'outer: for section in sections {
+        let FabricSection {
+            left_pos, top_pos, width, height, ..
+        } = section;
+
+        for left in left_pos..(left_pos+width) {
+            for top in top_pos..(top_pos+height) {
+                let &count = used_fabric
+                    .get(&(left, top))
+                    .unwrap();
+                if count != 1 { continue 'outer }
+            }
+        }
+
+        return Some(section.id);
+
+    }
+
+    None
 }
 
 #[cfg(test)]
@@ -107,7 +129,7 @@ mod tests {
         let input = CompleteStr("#1 @ 1,3: 1x1");
         let sections = fabric_sections(input).unwrap().1;
 
-        let used_fabric = calc_used_fabric(sections);
+        let used_fabric = calc_used_fabric(&sections);
 
         assert_eq!(Some(&1), used_fabric.get(&(1, 3)));
     }
@@ -117,8 +139,18 @@ mod tests {
         let input = fs::read_to_string("./src/day03/input-part1.txt").unwrap();
         let sections = fabric_sections(CompleteStr(&input)).unwrap().1;
 
-        let used_fabric = calc_used_fabric(sections);
+        let used_fabric = calc_used_fabric(&sections);
 
         assert_eq!(115242, calc_double_used_fabric(used_fabric));
+    }
+
+    #[test]
+    fn part2() {
+        let input = fs::read_to_string("./src/day03/input-part1.txt").unwrap();
+        let sections = fabric_sections(CompleteStr(&input)).unwrap().1;
+
+        let used_fabric = calc_used_fabric(&sections);
+
+        assert_eq!(Some(1046), find_free_section(sections, used_fabric));
     }
 }
